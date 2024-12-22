@@ -32,3 +32,14 @@ jobs:
           SCROLL_DURATION: 5
         run: |
           python Linux.do.py
+
+      - name: Send Telegram Notification
+        if: always()  # 仅在执行成功时发送通知
+        run: |
+          MESSAGE="✅ Daily Check-in 完成！\n🔔 Workflow: ${{ github.workflow }}\n📦 Repository: ${{ github.repository }}\n🕒 Timestamp: $(date -u)"
+          if [ "${{ job.status }}" != "success" ]; then
+            MESSAGE="❌ Daily Check-in 失败！\n🚨 Workflow: ${{ github.workflow }}\n📦 Repository: ${{ github.repository }}\n🕒 Timestamp: $(date -u)"
+          fi
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id=${{ secrets.TELEGRAM_USERID }} \
+          -d text="${MESSAGE}"
